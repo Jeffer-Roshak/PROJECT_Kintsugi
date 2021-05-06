@@ -1,28 +1,20 @@
 package myPackage;
 import java.util.*;
 
+class memNode {
 
-class Process {
-
-	int pid;
 	boolean type;
 	int base;
 	int limit;
 
-	public Process(int pid, boolean type, int base, int limit) {
+	public memNode( int base, boolean type, int limit) {
 		super();
-		this.pid = pid;
 		this.type = type;
 		this.base = base;
 		this.limit = limit;
 	}
 
-	public int getPid() {
-		return pid;
-	}
-	public void setPid(int pid) {
-		this.pid = pid;
-	}
+
 	public boolean isType() {
 		return type;
 	}
@@ -41,200 +33,322 @@ class Process {
 	public void setLimit(int limit) {
 		this.limit = limit;
 	}
+	public int toInt() {
+		return base;
+	}
 
 }
 
-public class Driver {
-	
-	
-	
-	static void firstFit(LinkedList<Process> mem,Process m) {//List and process are passed
-		LinkedList<Process> S = new LinkedList<Process>();
-		S=mem;
-		boolean fit=false;//Boolean to check if we found a fit yet
-		for (Iterator<Process> i = S.iterator(); i.hasNext();) {//iterating through all linked list
-			Process x=i.next();
-			if(x.type) {
-				System.out.println("Process");//if type is 1 its a process
+@SuppressWarnings({ "serial","unused", "rawtypes"})
+class SortedLinkedList extends LinkedList{
+
+	public class Node { //inner class Node
+		public memNode element;
+		public Node next;
+		public Node(memNode e, Node n) {
+			element =e;
+			next=n;
+		}
+		public memNode getElement() { return element;}
+		public Node getNext() { return next;}
+		public void setNext(Node n) { next=n;}
+
+	} //end of inner class Node   
+	private Node head = null;
+	//private Node<E> tail = null; // we will ignore the tail here
+	private int size=0;
+	public SortedLinkedList(){} //default constructor
+	public int size() { return size;}
+	public boolean isEmpty(){return size==0;}
+	public Node getHead() { return head;}
+	public void  addItem( memNode  item )  {
+		Node  newNode  = new  Node(item,null) ;
+		Node prev =null;
+		Node  loc= head;
+		if(head!=null) {
+			while ( true)  {
+				if( item.base > loc.getElement().base) {
+					prev=loc;
+					loc=loc.next;   
+					if(loc==null) break;
+				} else {
+					break;
+				}
 			}
-			else if(x.limit>=m.limit&&!fit) {// if type is 0 and it  fits we add
-				System.out.println("Added");
+		}
+		// prepare for insertion
+		if  ( prev == null ) {     //insert as first
+			newNode.next = head;
+			head=newNode;
+		} else {          //insert in middle
+			newNode.next = loc;
+			prev.next=newNode;
+		}
+		size++;
+	}
+	public void deleteItem ( memNode  item ) {
+		Node  temp, loc=head;
+		if(item==head.element) {          
+			temp= loc;     // If so, delete first node   
+			head= head.next;
+		} else {       // search for item in rest of list
+			if(loc.next!=null) 
+				while ( item!=loc.next.element) {
+					if(loc.next!=null) 
+						break;
+					loc= loc.next;
+				}
+
+			temp= loc.next; // node will be deleted at loc.next
+			loc.next= (loc.next).next;
+		}
+		size--;
+	}
+	public boolean getItem( memNode item)  {        
+		Node loc=head;
+		boolean found=false; 
+		System.out.print("Checking items: ");
+		while(true) {
+			System.out.print(loc.element+" ");
+			if(item==loc.element) {
+				found=true; break;
+			} else if(item.base>loc.element.base) {
+				loc = loc.next;
+				if(loc==null) break; 
+			} else   break; // item<loc.element
+		}
+		return found;
+	}
+	public String toString() { 
+		Node loc=head;
+		String s="";
+		while(loc!=null) {
+			s+=loc.element+ " ";
+			loc=loc.next;
+		}
+		return s;
+	}
+	public void mergeLists(SortedLinkedList sll) {
+		Node slider= sll.head;	//Node object that pointing to the head of sll
+		while(slider!=null) {	//Run loop till we reach NULL
+			addItem(slider.getElement());	//Adding element of sll to encapsulated list
+			slider=slider.next;		//Moving sll pointer to next element
+		}
+	}       
+
+
+	static void firstFit(SortedLinkedList mem,memNode m) {//List and process are passed
+		boolean fit=false;//Boolean to check if we found a fit yet
+		Node loc=mem.getHead();
+		memNode x=loc.getElement();
+		while(true) {//iterating through all linked list
+			if(x.type) {
+			}
+			else if(x.limit>=m.limit&&!fit&&!x.type) {// if type is 0 and it  fits we add
+				m.base=x.base;
 				x.type=true;
+				x.limit=m.limit;
 				fit=true;
 			}
 			else {
-				System.out.println("Hole");//otherwise it is a hole we dont add in
 			}
-	      }
+
+			loc=loc.next;
+			if(loc==null) {
+				break;
+			}
+			x=loc.getElement();
+		}
 		if(!fit) {
 			System.out.println("No space");// if its never added we print no space
 		}
-		
-		
+
+
+
 	}
-	
-	static int nextFit(LinkedList<Process> mem,Process m,int nextFitPtr) {
-		LinkedList<Process> S = new LinkedList<Process>();
-		S=mem;
-		boolean fit=false;
+
+	static int nextFit(SortedLinkedList mem,memNode m,int nextFitPtr) {
+
+		boolean fit=false;//Boolean to check if we found a fit yet
+		Node loc=mem.getHead();
+		memNode x=loc.getElement();
 		int nxp=nextFitPtr;//getting last position we were at 
-		boolean itr=false;
-		for (Iterator<Process> i = S.iterator(); i.hasNext();) {//iterating through all linked list
-			if(!itr) {
-				for(int x=0;x<nxp;x++) {
-					i.next();//skipping positions already checked
-				}
-				itr=true;
-			}
-			Process x=i.next();
-			if(x.type) {//same as best fit after this
-				System.out.println("Process");
+		for(int i=0;i<nxp;i++) {
+			loc=loc.next;//skipping positions already checked
+			x=loc.getElement();
+		}
+		while(true) {//iterating through all linked list
+
+			if(x.type) {
 				nxp++;//adding a position to never come back in nextFit
 			}
-			else if(x.limit>=m.limit&&!fit) {
-				System.out.println("Added");
+			else if(x.limit>=m.limit&&!fit) {// if type is 0 and it  fits we add
+				m.base=x.base;
 				x.type=true;
-				nxp++;
+				x.limit=m.limit;
 				fit=true;
+				nxp++;
 				break;
 			}
 			else {
-				System.out.println("Hole");
 				nxp++;
 			}
-	      }
+
+			loc=loc.next;
+			if(loc==null) {
+				break;
+			}
+			x=loc.getElement();
+		}
 		if(!fit) {
 			System.out.println("No space");// if its never added we print no space
 		}
+
 		return nxp;
 	}
-	
-	static void bestFit(LinkedList<Process> mem,Process m) {
-		LinkedList<Process> S = new LinkedList<Process>();
-		S=mem;
-		int best=0;
-		int bestIndex=0;
-		int n=0;//current index
-		boolean fit=false;
-		for (Iterator<Process> i = S.iterator(); i.hasNext();) {//iterating through all linked list to find best fit
-			Process x=i.next();
+
+	static void bestFit(SortedLinkedList mem,memNode m) {
+
+		boolean fit=false;//Boolean to check if we found a fit yet
+		Node loc=mem.getHead();
+		memNode x=loc.getElement();
+		int n=0,best=0,bestIndex=0;
+		memNode bestBase=null;
+		while(true) {//iterating through all linked list
 			if(x.type) {
 				n++;
 			}
-			else if(x.limit>=m.limit&&(x.limit<best||best==0)) {//if a hole is larger than file and is smaller than best we make this index as best, if best is 0 we add
+			else if(x.limit>=m.limit&&!x.type&&(x.limit<best||best==0)) {// if type is 0 and it  fits we add
 				bestIndex=n;//saving best index
 				best=x.limit;
+				bestBase=x;
 				n++;
-				
-			}
-			else {
-				n++;
-			}
-		}
-		
-		for (Iterator<Process> i = S.iterator(); i.hasNext();) {//iterating through all linked list to add element
-			Process x=i.next();
-			if(bestIndex==0&&x.limit>=m.limit&&!fit) {//if we reach best  index and it fits we add
-				System.out.println("Added");
-				x.type=true;
 				fit=true;
-				bestIndex--;//subtracting so we can reach 0 after we reach bestfit position
-			}
-			else if(x.type) {
-				System.out.println("Process");
-				bestIndex--;//subtracting so we can reach 0 after we reach bestfit position
+				m.base=x.base;
 			}
 			else {
-				System.out.println("Hole");
-				bestIndex--;//subtracting so we can reach 0 after we reach bestfit position
+				n++;
 			}
-			
-			
+
+			loc=loc.next;
+			if(loc==null) {
+				break;
+			}
+			x=loc.getElement();
 		}
-		if(!fit) {
+		if(fit) {
+			m.base=bestBase.base;
+			bestBase.type=true;
+			bestBase.limit=m.limit;
+
+		}
+		else
 			System.out.println("No space");// if its never added we print no space
-		}
+
 	}
-	
-	static void worstFit(LinkedList<Process> mem,Process m) {
-		LinkedList<Process> S = new LinkedList<Process>();
-		S=mem;
-		int largest=0;
-		int largestIndex=0;
-		int n=0;//current index
-		boolean fit=false;
-		for (Iterator<Process> i = S.iterator(); i.hasNext();) {//iterating through all linked list to find biggest space that fits
-			Process x=i.next();
+
+	static void worstFit(SortedLinkedList mem,memNode m) {
+		boolean fit=false;//Boolean to check if we found a fit yet
+		Node loc=mem.getHead();
+		memNode x=loc.getElement();
+		int n=0,largest=0,largestIndex=0;
+		memNode worst=null;
+		while(true) {//iterating through all linked list
 			if(x.type) {
 				n++;
 			}
-			else if(x.limit>=m.limit&&x.limit>largest) {//if we reach a hole larger than item we need to add and larger than largest hole found so far
-				largestIndex=n;//saving the largest index
+			else if(x.limit>=m.limit&&!x.type&&x.limit>largest) {// if type is 0 and it  fits we add
+				largestIndex=n;//saving best index
 				largest=x.limit;
+				worst=x;
 				n++;
-				
-			}
-			else {
-				n++;
-			}
-		}
-		
-		for (Iterator<Process> i = S.iterator(); i.hasNext();) {//iterating through all linked list to  add element in worst fit
-			Process x=i.next();
-			if(largestIndex==0&&x.limit>=m.limit&&!fit) {//if we iterated till the biggest we check if it fits
-				System.out.println("Added");
-				x.type=true;
 				fit=true;
-				largestIndex--;//subtracting so we can reach 0 after we reach worstfit position
-			}
-			else if(x.type) {
-				System.out.println("Process");
-				largestIndex--;//subtracting so we can reach 0 after we reach worstfit position
+				m.base=x.base;
 			}
 			else {
-				System.out.println("Hole");
-				largestIndex--;//subtracting so we can reach 0 after we reach worstfit position
+				n++;
 			}
-			
-			
+
+			loc=loc.next;
+			if(loc==null) {
+				break;
+			}
+			x=loc.getElement();
 		}
-		if(!fit) {
+		if(fit) {
+			m.base=worst.base;
+			worst.type=true;
+			worst.limit=m.limit;
+
+		}
+		else
 			System.out.println("No space");// if its never added we print no space
+
+
+	}
+
+	static void print(SortedLinkedList mem) {
+		Node start=mem.getHead();
+		for(int i=0;i<mem.size;i++) {
+			memNode getEl=start.getElement();
+			System.out.println("Base: "+getEl.base+" Type: "+getEl.type+" Limit: "+getEl.limit);
+			start=start.next;
 		}
 	}
+}
+
+
+
+
+public class Driver {
+
+
 	public static void main(String[] args) {
 		int nextFitPtr=0;//Pointer used to remember where we stopped last for next fit
-		LinkedList<Process> memory = new LinkedList<Process>();//memory list
-		LinkedList<Process> processTable = new LinkedList<Process>();
-		Process test1 = new Process(1000,true,0,10);
-		Process test2 = new Process(1001,false,0,20);
-		Process test3 = new Process(1002,true,0,10);		
-		Process test5 = new Process(1001,false,0,10);
-		Process test6 = new Process(1001,false,0,3);//Initial test list
+		SortedLinkedList memory = new SortedLinkedList();//memory list
+
+		memNode test1 = new memNode(4,true,10);
+		memNode test2 = new memNode(1,false,20);
+		memNode test3 = new memNode(2,true,10);		
+		memNode test5 = new memNode(3,false,10);
+		memNode test6 = new memNode(0,false,1);//Initial test list
+		memNode test9 = new memNode(5,false,15);//Test input
+
+		memNode test4 = new memNode(5,true,10);
+		memNode test7 = new memNode(6,true,1);//Test input
+		memNode test8 = new memNode(6,true,3);//Test input
 		
-		
-		Process test4 = new Process(1002,true,0,10);
-		Process test7 = new Process(1002,true,0,3);//Test input
-		memory.add(test1);
-		memory.add(test2);
-		memory.add(test3);
-		memory.add(test5);
-		memory.add(test6);//Adding test list to memory
-		//firstFit(memory,test4);
-//		nextFitPtr=nextFit(memory,test4,nextFitPtr);
-//		System.out.println(nextFitPtr);
-//		nextFitPtr=nextFit(memory,test7,nextFitPtr);
-//		System.out.println(nextFitPtr);
-		
-//		worstFit(memory,test4);
+		memory.addItem(test1);
+		memory.addItem(test2);
+		memory.addItem(test3);
+		memory.addItem(test5);
+		memory.addItem(test9);
+		memory.addItem(test6);//Adding test list to memory
+
+
+		//		SortedLinkedList.firstFit(memory,test4);
+		//		System.out.println();
+		//		SortedLinkedList.firstFit(memory,test7);
+
+
+//		nextFitPtr=SortedLinkedList.nextFit(memory,test4,nextFitPtr);
+//		SortedLinkedList.print(memory);	
 //		System.out.println();
-//		worstFit(memory,test7);
-		
-		bestFit(memory,test4);
-		System.out.println();
-		bestFit(memory,test7);
-		
-		
-		
+//		nextFitPtr=SortedLinkedList.nextFit(memory,test8,nextFitPtr);
+//		SortedLinkedList.print(memory);	
+//		System.out.println();
+//		nextFitPtr=SortedLinkedList.nextFit(memory,test7,nextFitPtr);
+
+//				SortedLinkedList.worstFit(memory,test4);
+//				System.out.println();
+//				SortedLinkedList.worstFit(memory,test7);
+
+				SortedLinkedList.bestFit(memory,test4);
+				System.out.println();
+				SortedLinkedList.bestFit(memory,test7);
+
+
+		SortedLinkedList.print(memory);	
+
 	}
 }
