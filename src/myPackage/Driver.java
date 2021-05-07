@@ -146,6 +146,10 @@ class SortedLinkedList extends LinkedList{
 			}
 			else if(x.limit>=m.limit&&!fit&&!x.type) {// if type is 0 and it  fits we add
 				m.base=x.base;
+				if(x.limit>m.limit) {
+					memNode hole= new memNode(x.base+m.limit,false,x.limit);
+					mem.addItem(hole);
+				}
 				x.type=true;
 				x.limit=m.limit;
 				fit=true;
@@ -184,6 +188,10 @@ class SortedLinkedList extends LinkedList{
 			}
 			else if(x.limit>=m.limit&&!fit) {// if type is 0 and it  fits we add
 				m.base=x.base;
+				if(x.limit>m.limit) {
+					memNode hole= new memNode(x.base+m.limit,false,x.limit-m.limit);
+					mem.addItem(hole);
+				}
 				x.type=true;
 				x.limit=m.limit;
 				fit=true;
@@ -238,6 +246,10 @@ class SortedLinkedList extends LinkedList{
 		}
 		if(fit) {
 			m.base=bestBase.base;
+			if(bestBase.limit>m.limit) {
+				memNode hole= new memNode(bestBase.base+m.limit,false,bestBase.limit-m.limit);
+				mem.addItem(hole);
+			}
 			bestBase.type=true;
 			bestBase.limit=m.limit;
 
@@ -277,6 +289,10 @@ class SortedLinkedList extends LinkedList{
 		}
 		if(fit) {
 			m.base=worst.base;
+			if(worst.limit>m.limit) {
+				memNode hole= new memNode(worst.base+m.limit,false,worst.limit-m.limit);
+				mem.addItem(hole);
+			}
 			worst.type=true;
 			worst.limit=m.limit;
 
@@ -307,16 +323,16 @@ public class Driver {
 		int nextFitPtr=0;//Pointer used to remember where we stopped last for next fit
 		SortedLinkedList memory = new SortedLinkedList();//memory list
 
-		memNode test1 = new memNode(4,true,10);
+		memNode test1 = new memNode(41,true,10);
 		memNode test2 = new memNode(1,false,20);
-		memNode test3 = new memNode(2,true,10);		
-		memNode test5 = new memNode(3,false,10);
+		memNode test3 = new memNode(21,true,10);		
+		memNode test5 = new memNode(31,false,10);
 		memNode test6 = new memNode(0,false,1);//Initial test list
-		memNode test9 = new memNode(5,false,15);//Test input
+		memNode test9 = new memNode(51,false,15);//Test input
 
 		memNode test4 = new memNode(5,true,10);
-		memNode test7 = new memNode(6,true,1);//Test input
-		memNode test8 = new memNode(6,true,3);//Test input
+		memNode test7 = new memNode(6,true,3);//Test input
+		memNode test8 = new memNode(6,true,4);//Test input
 		
 		memory.addItem(test1);
 		memory.addItem(test2);
@@ -344,6 +360,10 @@ public class Driver {
 //				SortedLinkedList.worstFit(memory,test7);
 
 				SortedLinkedList.bestFit(memory,test4);
+				SortedLinkedList.print(memory);	
+				System.out.println();
+				SortedLinkedList.bestFit(memory,test8);
+				SortedLinkedList.print(memory);	
 				System.out.println();
 				SortedLinkedList.bestFit(memory,test7);
 
