@@ -41,7 +41,7 @@ class memNode {
 
 @SuppressWarnings({ "serial","unused", "rawtypes"})
 class SortedLinkedList extends LinkedList{
-
+	static int nextFitPtr=0;
 	public class Node { //inner class Node
 		public memNode element;
 		public Node next;
@@ -88,12 +88,12 @@ class SortedLinkedList extends LinkedList{
 	}
 	public void deleteItem ( memNode  item ) {
 		Node  temp, loc=head;
-		if(item==head.element) {          
+		if(item.base==head.element.base) {          
 			temp= loc;     // If so, delete first node   
 			head= head.next;
 		} else {       // search for item in rest of list
 			if(loc.next!=null) 
-				while ( item!=loc.next.element) {
+				while ( item.base!=loc.next.element.base) {
 					if(loc.next!=null) 
 						break;
 					loc= loc.next;
@@ -171,18 +171,23 @@ class SortedLinkedList extends LinkedList{
 
 	}
 
-	static int nextFit(SortedLinkedList mem,memNode m,int nextFitPtr) {
+	static void nextFit(SortedLinkedList mem,memNode m) {
 
 		boolean fit=false;//Boolean to check if we found a fit yet
 		Node loc=mem.getHead();
+		Node temp=mem.getHead();
 		memNode x=loc.getElement();
 		int nxp=nextFitPtr;//getting last position we were at 
 		for(int i=0;i<nxp;i++) {
 			loc=loc.next;//skipping positions already checked
+			if(loc==null) {
+				loc=temp;
+			}
 			x=loc.getElement();
 		}
+		Node start=loc;
 		while(true) {//iterating through all linked list
-
+			
 			if(x.type) {
 				nxp++;//adding a position to never come back in nextFit
 			}
@@ -203,7 +208,12 @@ class SortedLinkedList extends LinkedList{
 			}
 
 			loc=loc.next;
-			if(loc==null) {
+			if(loc!=start&&loc==null) {
+				loc=temp;
+				x=temp.getElement();
+				nxp=0;
+			}
+			else if(loc==start) {
 				break;
 			}
 			x=loc.getElement();
@@ -211,8 +221,7 @@ class SortedLinkedList extends LinkedList{
 		if(!fit) {
 			System.out.println("No space");// if its never added we print no space
 		}
-
-		return nxp;
+		nextFitPtr=nxp;
 	}
 
 	static void bestFit(SortedLinkedList mem,memNode m) {
@@ -324,14 +333,14 @@ public class Driver {
 		SortedLinkedList memory = new SortedLinkedList();//memory list
 
 		memNode test1 = new memNode(41,true,10);
-		memNode test2 = new memNode(1,false,20);
+		memNode test2 = new memNode(1,true,20);
 		memNode test3 = new memNode(21,true,10);		
 		memNode test5 = new memNode(31,false,10);
 		memNode test6 = new memNode(0,false,1);//Initial test list
-		memNode test9 = new memNode(51,false,15);//Test input
+		memNode test9 = new memNode(51,true,4);//Test input
 
 		memNode test4 = new memNode(5,true,10);
-		memNode test7 = new memNode(6,true,3);//Test input
+		memNode test7 = new memNode(6,true,1);//Test input
 		memNode test8 = new memNode(6,true,4);//Test input
 		
 		memory.addItem(test1);
@@ -347,28 +356,30 @@ public class Driver {
 		//		SortedLinkedList.firstFit(memory,test7);
 
 
-//		nextFitPtr=SortedLinkedList.nextFit(memory,test4,nextFitPtr);
-//		SortedLinkedList.print(memory);	
-//		System.out.println();
-//		nextFitPtr=SortedLinkedList.nextFit(memory,test8,nextFitPtr);
-//		SortedLinkedList.print(memory);	
-//		System.out.println();
-//		nextFitPtr=SortedLinkedList.nextFit(memory,test7,nextFitPtr);
+		SortedLinkedList.nextFit(memory,test4);
+		SortedLinkedList.print(memory);	
+		System.out.println();
+		SortedLinkedList.nextFit(memory,test8);
+		SortedLinkedList.print(memory);	
+		System.out.println();
+		SortedLinkedList.nextFit(memory,test7);
+		SortedLinkedList.print(memory);	
+		System.out.println();
 
 //				SortedLinkedList.worstFit(memory,test4);
 //				System.out.println();
 //				SortedLinkedList.worstFit(memory,test7);
 
-				SortedLinkedList.bestFit(memory,test4);
-				SortedLinkedList.print(memory);	
-				System.out.println();
-				SortedLinkedList.bestFit(memory,test8);
-				SortedLinkedList.print(memory);	
-				System.out.println();
-				SortedLinkedList.bestFit(memory,test7);
-
-
-		SortedLinkedList.print(memory);	
+//				SortedLinkedList.bestFit(memory,test4);
+//				SortedLinkedList.print(memory);	
+//				System.out.println();
+//				SortedLinkedList.bestFit(memory,test8);
+//				SortedLinkedList.print(memory);	
+//				System.out.println();
+//				SortedLinkedList.bestFit(memory,test7);
+//
+//
+//		SortedLinkedList.print(memory);	
 
 	}
 }
