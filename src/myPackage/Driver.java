@@ -61,9 +61,10 @@ public class Driver {
 			}
 		}
 		//For debugging print params passed to main function
+		/*
 		for(int i = 0; i < args.length; i++) {
             System.out.println("Argument "+i+": "+args[i]);
-        }
+        }*/
 	}
 	
 	//Create Process related functions
@@ -79,7 +80,7 @@ public class Driver {
 	
 	static void nextFit(int processSize) {
 		memNode m = new memNode(true, -1, processSize);
-		SortedLinkedList.nextFit(memoryMap, m);
+		memoryMap.nexFit(m);
 		if(m.type) {
 			Process p = new Process(nextPID++, new Date(), m.base, processSize);
 			ProcessTable.add(p);
@@ -392,6 +393,7 @@ class SortedLinkedList{
 	} //end of inner class Node   
 	
 	private Node head = null;
+	private Node nxp = null;
 	//private Node<E> tail = null; // we will ignore the tail here
 	private int size=0;
 	public SortedLinkedList(){} //default constructor
@@ -568,7 +570,7 @@ class SortedLinkedList{
 		boolean fit=false;//Boolean to check if we found a fit yet
 		Node loc=mem.getHead();
 		memNode x=loc.getElement();
-		while(true) {//iterating through all linked list
+		while(!fit) {//iterating through all linked list
 			if(x.type) {
 			}
 			else if(x.limit>=m.limit&&!fit&&!x.type) {// if type is 0 and it  fits we add
@@ -594,9 +596,6 @@ class SortedLinkedList{
 			System.out.println("No space");// if its never added we print no space
 			m.type = false;
 		}
-
-
-
 	}
 
 	static void nextFit(SortedLinkedList mem,memNode m) {
@@ -615,7 +614,6 @@ class SortedLinkedList{
 		}
 		Node start=loc;
 		while(true) {//iterating through all linked list
-			
 			if(x.type) {
 				nxp++;//adding a position to never come back in nextFit
 			}
@@ -651,7 +649,70 @@ class SortedLinkedList{
 		}
 		nextFitPtr=nxp;
 	}
-
+	
+	void nexFit(memNode m) {
+		boolean fit=false;//Boolean to check if we found a fit yet
+		Node loc=null;
+		if(nxp==null)
+			loc = getHead();
+		else
+			loc = nxp;
+		memNode x=loc.getElement();
+		while(!fit) {//iterating through all linked list
+			if(x.type) {
+			}
+			else if(x.limit>=m.limit&&!fit&&!x.type) {// if type is 0 and it  fits we add
+				m.base=x.base;
+				if(x.limit>m.limit) {
+					memNode hole= new memNode(false, x.base+m.limit, x.limit-m.limit);
+					addItem(hole);
+				}
+				x.type=true;
+				x.limit=m.limit;
+				if(loc.next==null) {
+					nxp=getHead();
+					System.out.println("loc head"+nxp);
+				}
+				else {
+					nxp= loc.next; //Getting  next pointer
+					System.out.println("loc next"+nxp);
+				}
+				Node start = nxp;
+				do {
+					if(nxp.element.type)
+						if(nxp.next==null) {
+							nxp=getHead();
+							System.out.println("nxp head"+nxp);
+						}		
+						else {
+							nxp= nxp.next; //Getting  next pointer
+							System.out.println("nxp next"+nxp);
+						}
+							
+					else {
+						System.out.println("Obatined Nxp");
+						break;
+					}
+				} while(nxp!=start);
+				fit=true;
+			}
+			else {
+			}
+			loc=loc.next;
+			if(loc==null) {
+				loc=getHead();
+			}
+			if(loc==nxp) {
+				break;
+			}
+			x=loc.getElement();
+		}
+		if(!fit) {
+			System.out.println("No space");// if its never added we print no space
+			m.type = false;
+		}
+		
+	}
 	static void bestFit(SortedLinkedList mem,memNode m) {
 
 		boolean fit=false;//Boolean to check if we found a fit yet
