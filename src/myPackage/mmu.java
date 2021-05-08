@@ -9,7 +9,8 @@ import java.text.SimpleDateFormat;
 
 public class mmu {
 	//Variables
-	private static int memorySize=-1, memStrat=-1, nextPID=0;//Size of memory available and mem alloc strat
+	private static int memorySize=-1, memStrat=-1, nextPID=0, PIDRange= 65000;//Size of memory available and mem alloc strat
+	private static boolean PIDlooped= false;
 	//PID 0 is usually paging or swapping process, PID 1 is for init process
 	private static LinkedList<Process> ProcessTable= new LinkedList<Process>();
 	private static MemoryList memoryMap = new MemoryList();
@@ -28,7 +29,8 @@ public class mmu {
 		if(l==1) {	//If only param, check if it is help
 			if(args[0].equalsIgnoreCase("help")) {
 				//Call help function here
-				System.out.println("Print help menu here");	
+				printHelp();
+				System.exit(0);
 			}
 			else {
 				//If not help, it should be num, and we need two nums
@@ -54,7 +56,7 @@ public class mmu {
 				System.out.println("ERROR: Incorrect parameter type! Must be integers!");
 				System.exit(-1);
 			}
-			if((memorySize<0)||(memStrat<1)||(memStrat>4)) {
+			if((memorySize<=0)||(memStrat<1)||(memStrat>4)) {
 				//If integers are not in right range
 				System.out.println("ERROR: Incorrect values passed for parameters!");
 				System.exit(-1);
@@ -67,45 +69,142 @@ public class mmu {
         }*/
 	}
 	
+	static void printHelp() {
+		System.out.println("Help\r\n"
+				+ "\r\n"
+				+ "**********Initiating MMU**********\r\n"
+				+ "Command format: java mmu MEMORY_SIZE MEMORY_ALLOCATION_STRAT\r\n"
+				+ "MEMORY_SIZE: Positive integer, greater than 0. Size of memory to be managed.\r\n"
+				+ "MEMORY_ALLOCATION_STRAT: Integer in range [1-4]. Type of memory allocation strategy.\r\n"
+				+ "1 = First Fit\r\n"
+				+ "2 = Next Fit\r\n"
+				+ "3 = Best Fit\r\n"
+				+ "4 = Worst Fit\r\n"
+				+ "\r\n"
+				+ "**********MMU Commands**********\r\n"
+				+ "Create Process\r\n"
+				+ "Command Format: cr AMOUNT_OF_REQUESTED_MEMORY\r\n"
+				+ "AMOUNT_OF_REQUESTED_MEMORY: Positive integer greater than 0 less than size of total memory.\r\n"
+				+ "Creates a process and allocate the requested amount of memory (in KB) to it.\r\n"
+				+ "The command returns the process ID, the Base, and Limit of the allocated memory. \r\n"
+				+ "Command returns an error message if there is not enough memory.\r\n"
+				+ "********************************\r\n"
+				+ "Delete Process\r\n"
+				+ "Command Format: dl PROCESS_ID\r\n"
+				+ "PROCESS_ID: Integer in range (0, PIDRange). PIDRange = 65000 (default)\r\n"
+				+ "Delete the specified process and free the allocated memory.\r\n"
+				+ "Command returns an error message if there is no process with the specified ID.\r\n"
+				+ "********************************\r\n"
+				+ "Convert Virtual Address\r\n"
+				+ "Command Format: cv PROCESS_ID VIRTUAL_ADDRESS\r\n"
+				+ "PROCESS_ID: Integer in range (0, PIDRange). PIDRange = 65000 (default)\r\n"
+				+ "VIRTUAL_ADDRESS: Integer greater than 0.\r\n"
+				+ "Converts the specified Virtual Address to the Physical Address for specified Process.\r\n"
+				+ "Command returns an error message if the process tries to access an address outside its address space.\r\n"
+				+ "********************************\r\n"
+				+ "Print Memory Map\r\n"
+				+ "Command Format: pm\r\n"
+				+ "Command prints which memory locations are assigned and to which processes, and which memory locations are free.\r\n"
+				+ "********************************\r\n"
+				+ "Print Process Table\r\n"
+				+ "Command Format: pt\r\n"
+				+ "Command should prints the process table maintained by the system. \r\n"
+				+ "Each process has process ID, date and time of creation, base, and limit.\r\n"
+				+ "********************************");
+	}
 	//Create Process related functions
+	static int pIDGenerator() {
+		//All system prints are debug here
+		int temp = nextPID;
+		nextPID++;
+		if((nextPID>(PIDRange+1))||(PIDlooped)) {
+			//If PID has reached capacity
+			nextPID=0;
+			PIDlooped = true;
+			boolean found= false;
+			while(nextPID<=PIDRange) {
+				//Searching if PID exists
+				for(int i=0;i<ProcessTable.size();i++) {
+					if(ProcessTable.get(i).getpID()==nextPID) {
+						found= true;
+					}
+				}
+				if(!found) {
+					//If PID was never found
+					temp = nextPID;
+					nextPID++;
+					return temp;
+				}
+				nextPID++;
+				found=false;
+			}
+			return -1;
+		}
+		else {
+			return temp;	//Only if the PIDs have not been used up at all
+		}
+			
+	}
 	static void firstFit(int processSize) {
-		memNode m = new memNode(true, -1, processSize);	//Create an element	(for memory list)
-		memoryMap.firstFit(m);	//Pass element for insertion (first fit)
-		if(m.type) {	//If element could not be inserted, type would have been set to hole
-			Process p = new Process(nextPID++, new Date(), m.base, processSize);	//Create Process object (for process table)
-			ProcessTable.add(p);	//Add process to process table
-			System.out.printf("PID: %d | Base: %d | Limit: %d\n", p.getpID(), p.getBase(), p.getLimit());	//Print process details (date and time is irrelevant here)
-		}	
+		int temp=pIDGenerator();
+		if(temp!=-1) {
+			memNode m = new memNode(true, -1, processSize);	//Create an element	(for memory list)
+			memoryMap.firstFit(m);	//Pass element for insertion (first fit)
+			if(m.type) {	//If element could not be inserted, type would have been set to hole
+				Process p = new Process(temp, new Date(), m.base, processSize);	//Create Process object (for process table)
+				ProcessTable.add(p);	//Add process to process table
+				System.out.printf("PID: %d | Base: %d | Limit: %d\n", p.getpID(), p.getBase(), p.getLimit());	//Print process details (date and time is irrelevant here)
+			}	
+		}
+		else {
+			nextPID--;
+			System.out.println("No PID left");
+		}
 	}
 	
 	static void nextFit(int processSize) {
-		memNode m = new memNode(true, -1, processSize); 
-		memoryMap.nextFit(m);	//Pass element for insertion (next fit)
-		if(m.type) {
-			Process p = new Process(nextPID++, new Date(), m.base, processSize);
-			ProcessTable.add(p);
-			System.out.printf("PID: %d | Base: %d | Limit: %d\n", p.getpID(), p.getBase(), p.getLimit());
-		}	
+		int temp=pIDGenerator();
+		if(temp!=-1) {
+			memNode m = new memNode(true, -1, processSize);	//Create an element	(for memory list)
+			memoryMap.nextFit(m);	//Pass element for insertion (next fit)
+			if(m.type) {	//If element could not be inserted, type would have been set to hole
+				Process p = new Process(temp, new Date(), m.base, processSize);	//Create Process object (for process table)
+				ProcessTable.add(p);	//Add process to process table
+				System.out.printf("PID: %d | Base: %d | Limit: %d\n", p.getpID(), p.getBase(), p.getLimit());	//Print process details (date and time is irrelevant here)
+			}	
+		}
+		else
+			nextPID--;
 	}
 	
 	static void bestFit(int processSize) {
-		memNode m = new memNode(true, -1, processSize);
-		memoryMap.bestFit(m);	//Pass element for insertion (best fit)
-		if(m.type) {
-			Process p = new Process(nextPID++, new Date(), m.base, processSize);
-			ProcessTable.add(p);
-			System.out.printf("PID: %d | Base: %d | Limit: %d\n", p.getpID(), p.getBase(), p.getLimit());
-		}	
+		int temp=pIDGenerator();
+		if(temp!=-1) {
+			memNode m = new memNode(true, -1, processSize);	//Create an element	(for memory list)
+			memoryMap.bestFit(m);	//Pass element for insertion (best fit)
+			if(m.type) {	//If element could not be inserted, type would have been set to hole
+				Process p = new Process(temp, new Date(), m.base, processSize);	//Create Process object (for process table)
+				ProcessTable.add(p);	//Add process to process table
+				System.out.printf("PID: %d | Base: %d | Limit: %d\n", p.getpID(), p.getBase(), p.getLimit());	//Print process details (date and time is irrelevant here)
+			}	
+		}
+		else
+			nextPID--;
 	}
 	
 	static void worstFit(int processSize) {
-		memNode m = new memNode(true, -1, processSize);
-		memoryMap.worstFit(m); //Pass element for insertion (worst fit)
-		if(m.type) {
-			Process p = new Process(nextPID++, new Date(), m.base, processSize);
-			ProcessTable.add(p);
-			System.out.printf("PID: %d | Base: %d | Limit: %d\n", p.getpID(), p.getBase(), p.getLimit());
-		}	
+		int temp=pIDGenerator();
+		if(temp!=-1) {
+			memNode m = new memNode(true, -1, processSize);	//Create an element	(for memory list)
+			memoryMap.worstFit(m);	//Pass element for insertion (worst fit)
+			if(m.type) {	//If element could not be inserted, type would have been set to hole
+				Process p = new Process(temp, new Date(), m.base, processSize);	//Create Process object (for process table)
+				ProcessTable.add(p);	//Add process to process table
+				System.out.printf("PID: %d | Base: %d | Limit: %d\n", p.getpID(), p.getBase(), p.getLimit());	//Print process details (date and time is irrelevant here)
+			}	
+		}
+		else
+			nextPID--;
 	}
 	
 	/* Command Functions
@@ -116,6 +215,11 @@ public class mmu {
 		if(processSize>memorySize) {
 			//If process is larger than the memory
 			System.out.println("ERROR: Process larger than memory! Cannot create.");
+			return;
+		}
+		if(processSize<=0) {
+			//If process is 0 or less
+			System.out.println("ERROR: Invalid process size, must be greater than 0.");
 			return;
 		}
 		switch(memStrat) {
@@ -144,6 +248,11 @@ public class mmu {
 	
 	static void deleteProcess(int pID) {
 		//Delete Process command (dl)
+		if((pID<0)||(pID>PIDRange)) {
+			//If PID is in wrong range
+			System.out.println("ERROR: Invalid range for PID.");
+			return;
+		}
 		boolean notFound = true;
 		for(int i=0;i<ProcessTable.size();i++) {
 			//Iterate through process table to find the process
@@ -163,6 +272,16 @@ public class mmu {
 	
 	static void convertAddress(int pID, int virtualAddress) {
 		//Address Conversion command (cv)
+		if((pID<0)||(pID>PIDRange)) {
+			//If PID is in wrong range
+			System.out.println("ERROR: Invalid range for PID.");
+			return;
+		}
+		if(virtualAddress<0) {
+			//If PID is in wrong range
+			System.out.println("ERROR: Invalid range for virtual address.");
+			return;
+		}
 		boolean notFound = true;
 		for(int i=0;i<ProcessTable.size();i++) {
 			//Iterate through process table to find the process
