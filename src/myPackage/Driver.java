@@ -71,45 +71,47 @@ public class Driver {
 		memNode m = new memNode(true, -1, processSize);
 		SortedLinkedList.firstFit(memoryMap, m);
 		if(m.type) {
-				ProcessTable.add(new Process(nextPID++, new Date(), m.base, processSize));
+			Process p = new Process(nextPID++, new Date(), m.base, processSize);
+			ProcessTable.add(p);
+			System.out.printf("PID: %d | Base: %d | Limit: %d\n", p.getpID(), p.getBase(), p.getLimit());
 		}	
-		else		
-			System.out.println("No space");
 	}
 	
 	static void nextFit(int processSize) {
 		memNode m = new memNode(true, -1, processSize);
 		SortedLinkedList.nextFit(memoryMap, m);
 		if(m.type) {
-				ProcessTable.add(new Process(nextPID++, new Date(), m.base, processSize));
+			Process p = new Process(nextPID++, new Date(), m.base, processSize);
+			ProcessTable.add(p);
+			System.out.printf("PID: %d | Base: %d | Limit: %d\n", p.getpID(), p.getBase(), p.getLimit());
 		}	
-		else		
-			System.out.println("No space");
 	}
 	
 	static void bestFit(int processSize) {
 		memNode m = new memNode(true, -1, processSize);
 		SortedLinkedList.bestFit(memoryMap, m);
 		if(m.type) {
-				ProcessTable.add(new Process(nextPID++, new Date(), m.base, processSize));
+			Process p = new Process(nextPID++, new Date(), m.base, processSize);
+			ProcessTable.add(p);
+			System.out.printf("PID: %d | Base: %d | Limit: %d\n", p.getpID(), p.getBase(), p.getLimit());
 		}	
-		else		
-			System.out.println("No space");
 	}
 	
 	static void worstFit(int processSize) {
 		memNode m = new memNode(true, -1, processSize);
 		SortedLinkedList.worstFit(memoryMap, m);
 		if(m.type) {
-				ProcessTable.add(new Process(nextPID++, new Date(), m.base, processSize));
+			Process p = new Process(nextPID++, new Date(), m.base, processSize);
+			ProcessTable.add(p);
+			System.out.printf("PID: %d | Base: %d | Limit: %d\n", p.getpID(), p.getBase(), p.getLimit());
 		}	
-		else		
-			System.out.println("No space");
 	}
 	
-	//Command Functions
+	/* Command Functions
+	 * These functions are called directly from the commands.
+	 */
 	static void createProcess(int memStrat, int processSize) {
-		//Create Process command
+		//Create Process command (cr)
 		if(processSize>memorySize) {
 			//If process is larger than the memory
 			System.out.println("Process larger than memory! Cannot create");
@@ -140,7 +142,7 @@ public class Driver {
 	}
 	
 	static void deleteProcess(int pID) {
-		//Delete Process command
+		//Delete Process command (dl)
 		boolean notFound = true;
 		for(int i=0;i<ProcessTable.size();i++) {
 			if(ProcessTable.get(i).getpID()==pID) {
@@ -156,7 +158,7 @@ public class Driver {
 	}
 	
 	static void convertAddress(int pID, int virtualAddress) {
-		//Address Conversion command
+		//Address Conversion command (cv)
 		boolean notFound = true;
 		for(int i=0;i<ProcessTable.size();i++) {
 			if(ProcessTable.get(i).getpID()==pID) {
@@ -175,13 +177,13 @@ public class Driver {
 	}
 	
 	static void printMemoryMap() {
-		//Print Memory Map command
+		//Print Memory Map command (pm)
 		System.out.printf("%6s %15s %15s\n", "P/H", "Base", "Limit");
 		memoryMap.printList();
 	}
 	
 	static void printProcessTable() {
-		//Print Process Table command
+		//Print Process Table command (pt)
 		System.out.printf("%10s %15s %13s %15s %15s\n", "PID", "Date", "Time", "Base", "Limit");
 		for(int i=0; i<ProcessTable.size();i++) {
 			System.out.println(ProcessTable.get(i));
@@ -191,9 +193,9 @@ public class Driver {
 	//Driver Function
 	public static void main(String[] args) throws IOException{
 		mainArgumentHandler(args);	//Call main function argument handler
-		System.out.println("Memory size ="+memorySize+"| Strat Mode: "+memStrat);	//Debug Line
+		//System.out.println("Memory size ="+memorySize+"| Strat Mode: "+memStrat);	//Debug Line
 		memoryMap.addItem(new memNode(false, 0, memorySize));
-		memoryMap.printList();
+		//memoryMap.printList();	//Debug Line
 		//MMU command line
 		String command;	//For storing entire command
 		BufferedReader console = new BufferedReader (new InputStreamReader(System.in));	//Input stream buffer to obtain command
@@ -201,30 +203,29 @@ public class Driver {
 			System.out.print(">");
 			command = console.readLine();	//Read command
 				if (command.equals("")) {
-					//loop again if nothing was passed
+					//We loop again if nothing was entered
 					continue;
 				}
 				else if (command.equalsIgnoreCase("exit")) {
 					//Exit the program
-					//Additional code for data storage here
 					System.out.println("Exiting MMU");
 					System.exit(0);
 				}
-			ArrayList<String> params = new ArrayList<String>();	//List to store params
-			String[] splitList = command.split(" ");	//Create list of params
+			String[] params = command.split(" ");	//Create list of params
 			
-			int size = splitList.length;
+			int size = params.length;
 			
-			for (int j=0; j<size; j++) {
-				System.out.println("Param "+j+"= "+splitList[j]);
-				params.add(splitList[j]);	//Initialize list of params
-			}
-			String comm = params.get(0);	//First param is command
+			/*
+			for (int j=0; j<size; j++) {	//For debug
+				System.out.println("Param "+j+"= "+params[j]);
+			}*/
+			
+			String comm = params[0];	//First param is command
 			if((comm.equals("cr"))&&(size==2)) {	//Command and total num of params required
 				//Create process command
 				System.out.println("Create Process"); //For Debug
 				try{
-					createProcess(memStrat,Integer.parseInt(params.get(1))); 
+					createProcess(memStrat,Integer.parseInt(params[1])); 
 				}catch (NumberFormatException ex) {
 					System.out.println("Incorrect parameter type! Must be integers!");
 					continue;
@@ -235,7 +236,7 @@ public class Driver {
 				//Delete process command
 				System.out.println("Delete Process"); //For Debug
 				try{
-					deleteProcess(Integer.parseInt(params.get(1))); 
+					deleteProcess(Integer.parseInt(params[1])); 
 				}catch (NumberFormatException ex) {
 					System.out.println("Incorrect parameter type! Must be integers!");
 					continue;
@@ -246,7 +247,7 @@ public class Driver {
 				//Convert address command
 				System.out.println("Convert Address"); //For Debug
 				try{
-					convertAddress(Integer.parseInt(params.get(1)), Integer.parseInt(params.get(2))); 
+					convertAddress(Integer.parseInt(params[1]), Integer.parseInt(params[2])); 
 				}catch (NumberFormatException ex) {
 					System.out.println("Incorrect parameter type! Must be integers!");
 					continue;
@@ -499,10 +500,8 @@ class SortedLinkedList{
 			else {
 				pre=cur;
 				cur=cur.next;
-			}
-				
+			}		
 		}
-		
 		if(cur==head) {
 			//If the first node is the required element
 			post=cur.next;
