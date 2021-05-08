@@ -157,6 +157,21 @@ public class Driver {
 	
 	static void convertAddress(int pID, int virtualAddress) {
 		//Address Conversion command
+		boolean notFound = true;
+		for(int i=0;i<ProcessTable.size();i++) {
+			if(ProcessTable.get(i).getpID()==pID) {
+				notFound=false;
+				if(ProcessTable.get(i).getLimit()>= virtualAddress) {
+					System.out.printf("PID: %d\nVirtual Address: %d | Physical Address: %d", ProcessTable.get(i).getpID(), virtualAddress, (ProcessTable.get(i).getBase()+virtualAddress));
+				}
+				else
+					System.out.println("Error: Address out of bounds");
+				break;
+			}
+		}
+		if(notFound) {
+			System.out.println("Error: No process with requested pID");
+		}
 	}
 	
 	static void printMemoryMap() {
