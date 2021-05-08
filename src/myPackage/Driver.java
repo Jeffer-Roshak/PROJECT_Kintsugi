@@ -165,7 +165,7 @@ public class Driver {
 			if(ProcessTable.get(i).getpID()==pID) {
 				notFound=false;
 				if(ProcessTable.get(i).getLimit()>= virtualAddress) {
-					System.out.printf("PID: %d\nVirtual Address: %d | Physical Address: %d", ProcessTable.get(i).getpID(), virtualAddress, (ProcessTable.get(i).getBase()+virtualAddress));
+					System.out.printf("PID: %d\nVirtual Address: %d | Physical Address: %d\n", ProcessTable.get(i).getpID(), virtualAddress, (ProcessTable.get(i).getBase()+virtualAddress));
 				}
 				else
 					System.out.println("Error: Address out of bounds");
