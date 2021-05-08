@@ -164,7 +164,7 @@ public class Driver {
 		for(int i=0;i<ProcessTable.size();i++) {
 			if(ProcessTable.get(i).getpID()==pID) {
 				notFound=false;
-				if(ProcessTable.get(i).getLimit()>= virtualAddress) {
+				if(ProcessTable.get(i).getLimit()> virtualAddress) {
 					System.out.printf("PID: %d\nVirtual Address: %d | Physical Address: %d\n", ProcessTable.get(i).getpID(), virtualAddress, (ProcessTable.get(i).getBase()+virtualAddress));
 				}
 				else
